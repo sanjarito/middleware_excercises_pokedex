@@ -21,6 +21,15 @@ app.use(function validateBearerToken(req, res, next) {
    }
   next()
  })
+ app.use((error, req, res, next) => {
+   let response
+   if (process.env.NODE_ENV === 'production') {
+     response = { error: { message: 'server error' }}
+   } else {
+     response = { error }
+   }
+   res.status(500).json(response)
+ })
 
 
 const validTypes = [`Bug`, `Dark`, `Dragon`, `Electric`, `Fairy`, `Fighting`, `Fire`, `Flying`, `Ghost`, `Grass`, `Ground`, `Ice`, `Normal`, `Poison`, `Psychic`, `Rock`, `Steel`, `Water`]
@@ -50,15 +59,6 @@ function handleGetPokemon(req, res) {
 
 app.get('/pokemon',handleGetPokemon)
 
-app.use((error, req, res, next) => {
-  let response
-  if (process.env.NODE_ENV === 'production') {
-    response = { error: { message: 'server error' }}
-  } else {
-    response = { error }
-  }
-  res.status(500).json(response)
-})
 
 
 const PORT = process.env.PORT || 8000
