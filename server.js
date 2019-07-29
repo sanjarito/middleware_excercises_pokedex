@@ -1,12 +1,17 @@
 require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const app = express()
 const POKEDEX = require('./pokedex.json')
+const helmet = require('helmet
+const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'common'
 
-app.use(morgan('dev'))
+app.use(morgan(morganSetting))
+app.use(helmet())
+app.use(cors())
 app.use(function validateBearerToken(req, res, next) {
-   console.log('validate bearer token middleware')
+
    // move to the next middleware
    const authToken = req.get('Authorization')
    const apiToken = process.env.API_TOKEN
@@ -29,8 +34,7 @@ app.get('/types', handleGetTypes)
 function handleGetPokemon(req, res) {
   const pokemon_Name = req.query['name'].charAt(0).toUpperCase() + req.query['name'].slice(1)
   const pokemon_Type = req.query['type'].charAt(0).toUpperCase() + req.query['type'].slice(1)
-  console.log(pokemon_Name)
-  console.log(pokemon_Type)
+
   const pokemons = POKEDEX['pokemon']
   if (validTypes.includes(pokemon_Type)){
     const results2 = pokemons
@@ -42,18 +46,22 @@ function handleGetPokemon(req, res) {
 
   }
 
-
-
-
-
-
-
-
 }
 
 app.get('/pokemon',handleGetPokemon)
 
-const PORT = 8000
+app.use((error, req, res, next) => {
+  let response
+  if (process.env.NODE_ENV === 'production') {
+    response = { error: { message: 'server error' }}
+  } else {
+    response = { error }
+  }
+  res.status(500).json(response)
+})
+
+
+const PORT = process.env.PORT || 8000
 app.listen(PORT, () => {
-  console.log(`Server listening at http://localhost:${PORT}`)
+
 })
